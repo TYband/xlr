@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小六壬算事</title>
+    <style>
+        body {
+            font-family: Consolas, 'Courier New', Courier, monospace;
+            background-color: #000;
+            margin: 20px;
+            color: #ddd; 
+            white-space: pre-wrap;
+        }
+        .input-area {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .prompt {
+            color: #ddd;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            font-size: 1em;
+            width: 50px;
+            caret-color: #fff; 
+        }
+        input[type="text"]:focus {
+            outline: none;
+        }
+        .output-area {
+            color: #ddd;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="input-area" id="main-input-area">
+        <span class="prompt">输入起念时间：</span>
+        <input type="text" id="thought-time" placeholder="">
+    </div>
+    
+    <pre class="output-area" id="output-area"></pre>
+
+<script>
+    const guaData = {
+        '大安': {
+            name: '大安 (平安、吉利)',
+            analysis: '核心含义: 身未动、平安吉昌，无事慢行。\n下午事况: 大概率无突发大事或麻烦，原有计划可平稳推进。若需外出或办事，过程较为顺利，但可能节奏舒缓。'
+        },
+        '留连': {
+            name: '留连 (迟滞、不顺)',
+            analysis: '核心含义: 事态延缓、停滞，不宜贸然行动。\n下午事况: 事情进展缓慢或遇到阻碍，不宜急于求成。适合思考和规划，不适合主动出击。'
+        },
+        '速喜': {
+            name: '速喜 (喜讯、成功)',
+            analysis: '核心含义: 喜事将近、事成迅速。\n下午事况: 事情进展顺利，有意外的喜讯或好消息。适合积极行动，抓住机会。'
+        },
+        '赤口': {
+            name: '赤口 (口舌、争执)',
+            analysis: '核心含义: 是非、争执和口舌。\n下午事况: 容易与人产生口角或误解。行事需要谨慎，注意言辞。不适合处理需要沟通和协调的事务。'
+        },
+        '小吉': {
+            name: '小吉 (顺利、进展)',
+            analysis: '核心含义: 事态顺利、平稳，虽无大喜但有进展。\n下午事况: 一切平稳有序，无大风大浪。适合按部就班地完成任务，会有小小的收获或好转。'
+        },
+        '空亡': {
+            name: '空亡 (虚空、落空)',
+            analysis: '核心含义: 事态虚无、落空，希望渺茫。\n下午事况: 计划或期望的事情可能落空。不宜抱有太大希望，适合休息或重新规划。'
+        }
+    };
+    
+    const dizhiMap = {
+        '子': 1, '丑': 2, '寅': 3, '卯': 4, '辰': 5, '巳': 6,
+        '午': 7, '未': 8, '申': 9, '酉': 10, '戌': 11, '亥': 12
+    };
+
+    const guaSequence = ['大安', '留连', '速喜', '赤口', '小吉', '空亡'];
+
+    function appendLine(text, delay) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const outputArea = document.getElementById('output-area');
+                outputArea.textContent += text + '\n';
+                window.scrollTo(0, document.body.scrollHeight);
+                resolve();
+            }, delay);
+        });
+    }
+
+    async function startCalculation() {
+        const thoughtTimeStr = document.getElementById('thought-time').value.trim();
+        const timeRegex = /^\d{4}$/; 
+
+        if (!thoughtTimeStr || !timeRegex.test(thoughtTimeStr)) {
+            await appendLine('错误：时间格式无效，请输入一个四位数字，例如 1203。', 0);
+            return;
+        }
+
+        const hour = parseInt(thoughtTimeStr.substring(0, 2));
+        const minute = parseInt(thoughtTimeStr.substring(2, 4));
+
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+            await appendLine('错误：请输入有效的时间（0000-2359）。', 0);
+            return;
+        }
+
+        document.getElementById('main-input-area').style.display = 'none';
+        const outputArea = document.getElementById('output-area');
+        outputArea.textContent = '';
+        const LINE_DELAY = 50;
+
+        // ** Hardcoded Lunar Date based on today's date (Sep 16, 2025) as per your example **
+        const lunarMonthNum = 7;
+        const lunarDayNum = 25;
+
+        // 根据公历时辰获取地支数
+        const dizhiName = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'][Math.floor((hour + 1) / 2) % 12];
+        const dizhiNum = dizhiMap[dizhiName];
+        
+        await appendLine(`> 正在执行小六壬运算...`, 1000);
+        await appendLine(`> 输入参数: 农历${lunarMonthNum}月${lunarDayNum}日, 起念时辰为 ${dizhiName}`, LINE_DELAY);
+        await appendLine(``, LINE_DELAY);
+
+        // 1. 月上起日
+        await appendLine(`> 步骤 1: 月上起日`, 500);
+        let pos1 = (lunarMonthNum % 6 === 0) ? 5 : (lunarMonthNum % 6) - 1; // 修正逻辑：余数为0时取5
+        let gua1 = guaSequence[pos1];
+        await appendLine(`   - 从【大安】开始，顺数 ${lunarMonthNum} 步。`, LINE_DELAY);
+        await appendLine(`   - 落定在 -> ${gua1}`, 500);
+        await appendLine(``, LINE_DELAY);
+        
+        // 2. 日上起时
+        await appendLine(`> 步骤 2: 日上起时`, 500);
+        let pos2 = (pos1 + lunarDayNum % 6) % 6;
+        if(pos2 === 0) pos2 = 5; else pos2--;
+        let gua2 = guaSequence[pos2];
+        await appendLine(`   - 从【${gua1}】开始，顺数 ${lunarDayNum} 步。`, LINE_DELAY);
+        await appendLine(`   - 落定在 -> ${gua2}`, 500);
+        await appendLine(``, LINE_DELAY);
+
+        // 3. 最终落卦
+        await appendLine(`> 步骤 3: 宫位起卦`, 500);
+        let finalPos = (pos2 + dizhiNum % 6) % 6;
+        if(finalPos === 0) finalPos = 5; else finalPos--;
+        let finalGua = guaSequence[finalPos];
+        await appendLine(`   - 从【${gua2}】开始，顺数 ${dizhiNum}（时数）步。`, LINE_DELAY);
+        await appendLine(`   - 最终卦象 -> ${finalGua}`, 500);
+        await appendLine(``, LINE_DELAY);
+
+        // 4. 最终结果
+        await appendLine(`> 运算完成.`, 1000);
+        await appendLine(``, LINE_DELAY);
+        await appendLine(`> 占算结果: ${guaData[finalGua].name}`, LINE_DELAY);
+        await appendLine(`> 卦象解读: ${guaData[finalGua].analysis}`, LINE_DELAY);
+        await appendLine(``, 500);
+        await appendLine(`> 脚本执行完毕。`, 500);
+    }
+    
+    document.getElementById('thought-time').focus();
+    document.getElementById('thought-time').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            startCalculation();
+        }
+    });
+
+</script>
+
+</body>
+</html>
